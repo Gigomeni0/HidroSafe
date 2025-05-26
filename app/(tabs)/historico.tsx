@@ -48,35 +48,89 @@ export default function HistoricoScreen() {
     }
   ]);
 
-  const getTipoColor = (tipo: string) => {
+  const getTipoConfig = (tipo: string) => {
     switch (tipo) {
-      case 'Alerta': return '#ff4444';
-      case 'Medição': return '#0099ff';
-      case 'Sistema': return '#00aa00';
-      case 'Manutenção': return '#ffaa00';
-      default: return '#666';
+      case 'Alerta': 
+        return { 
+          color: '#FF6B6B', 
+          bgColor: '#FFE8E8',
+          icon: '⚠️',
+          textColor: '#D63031'
+        };
+      case 'Medição': 
+        return { 
+          color: '#4ECDC4', 
+          bgColor: '#E8F8F7',
+          icon: '📊',
+          textColor: '#00B894'
+        };
+      case 'Sistema': 
+        return { 
+          color: '#45B7D1', 
+          bgColor: '#E8F4FD',
+          icon: '⚙️',
+          textColor: '#0984E3'
+        };
+      case 'Manutenção': 
+        return { 
+          color: '#FFA726', 
+          bgColor: '#FFF4E6',
+          icon: '🔧',
+          textColor: '#E17000'
+        };
+      default: 
+        return { 
+          color: '#74B9FF', 
+          bgColor: '#F0F8FF',
+          icon: '📋',
+          textColor: '#636E72'
+        };
     }
   };
 
-  const renderEvento = ({ item }: { item: Evento }) => (
-    <View style={styles.eventoCard}>
-      <View style={[styles.tipoIndicator, { backgroundColor: getTipoColor(item.tipo) }]} />
-      <View style={styles.eventoContent}>
-        <View style={styles.eventoHeader}>
-          <ThemedText style={styles.tipo}>{item.tipo}</ThemedText>
-          <ThemedText style={styles.timestamp}>{item.timestamp}</ThemedText>
+  const renderEvento = ({ item }: { item: Evento }) => {
+    const config = getTipoConfig(item.tipo);
+    
+    return (
+      <View style={[styles.eventoCard, { backgroundColor: config.bgColor }]}>
+        <View style={[styles.tipoIndicator, { backgroundColor: config.color }]} />
+        
+        <View style={styles.eventoContent}>
+          <View style={styles.eventoHeader}>
+            <View style={styles.tipoContainer}>
+              <ThemedText style={styles.tipoIcon}>{config.icon}</ThemedText>
+              <ThemedText style={[styles.tipo, { color: config.textColor }]}>
+                {item.tipo}
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.timestamp}>{item.timestamp}</ThemedText>
+          </View>
+          
+          <ThemedText style={styles.descricao}>{item.descricao}</ThemedText>
+          
+          {item.valor && (
+            <View style={[styles.valorContainer, { backgroundColor: config.color + '20' }]}>
+              <ThemedText style={[styles.valorLabel, { color: config.textColor }]}>
+                Valor:
+              </ThemedText>
+              <ThemedText style={[styles.valor, { color: config.textColor }]}>
+                {item.valor}
+              </ThemedText>
+            </View>
+          )}
         </View>
-        <ThemedText style={styles.descricao}>{item.descricao}</ThemedText>
-        {item.valor && (
-          <ThemedText style={styles.valor}>Valor: {item.valor}</ThemedText>
-        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>Histórico do Sistema</ThemedText>
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>Histórico do Sistema</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Últimas atividades e medições
+        </ThemedText>
+      </View>
       
       <FlatList
         data={eventos}
@@ -84,6 +138,7 @@ export default function HistoricoScreen() {
         keyExtractor={(item) => item.id}
         style={styles.lista}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listaContent}
       />
     </ThemedView>
   );
@@ -92,52 +147,100 @@ export default function HistoricoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
     padding: 20,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
   title: {
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
+    color: '#1A202C',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  subtitle: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '400',
   },
   lista: {
     flex: 1,
   },
+  listaContent: {
+    padding: 16,
+    paddingBottom: 100, // espaço extra no final
+  },
   eventoCard: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
-    marginBottom: 10,
-    borderRadius: 10,
-    elevation: 2,
+    marginBottom: 12,
+    borderRadius: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    overflow: 'hidden',
   },
   tipoIndicator: {
-    width: 5,
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
+    width: 6,
   },
   eventoContent: {
     flex: 1,
-    padding: 15,
+    padding: 16,
   },
   eventoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
+  },
+  tipoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tipoIcon: {
+    fontSize: 16,
+    marginRight: 8,
   },
   tipo: {
-    fontWeight: 'bold',
-    fontSize: 14,
+    fontWeight: '600',
+    fontSize: 15,
   },
   timestamp: {
     fontSize: 12,
-    opacity: 0.7,
+    color: '#64748B',
+    fontWeight: '500',
   },
   descricao: {
     fontSize: 14,
-    marginBottom: 5,
+    color: '#374151',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  valorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  valorLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginRight: 6,
   },
   valor: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    opacity: 0.8,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
