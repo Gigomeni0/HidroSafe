@@ -1,56 +1,50 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-
-interface Evento {
-  id: string;
-  timestamp: string;
-  tipo: string;
-  descricao: string;
-  valor?: string;
-}
+import { getHistoricoEventos, Evento } from '@/services/api';
 
 export default function HistoricoScreen() {
-  const [eventos] = useState<Evento[]>([
-    {
-      id: '1',
-      timestamp: '2024-01-15 14:30',
-      tipo: 'Medição',
-      descricao: 'pH da água',
-      valor: '7.2'
-    },
-    {
-      id: '2',
-      timestamp: '2024-01-15 14:25',
-      tipo: 'Alerta',
-      descricao: 'Turbidez alta detectada',
-      valor: '15 NTU'
-    },
-    {
-      id: '3',
-      timestamp: '2024-01-15 14:20',
-      tipo: 'Sistema',
-      descricao: 'Bomba ligada automaticamente'
-    },
-    {
-      id: '4',
-      timestamp: '2024-01-15 14:15',
-      tipo: 'Medição',
-      descricao: 'Temperatura da água',
-      valor: '23.5°C'
-    },
-    {
-      id: '5',
-      timestamp: '2024-01-15 14:10',
-      tipo: 'Manutenção',
-      descricao: 'Limpeza dos sensores concluída'
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Função para buscar dados do backend
+  const fetchEventos = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
+      setError(null);
+      const data = await getHistoricoEventos();
+      setEventos(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      console.error('Erro ao carregar histórico:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  ]);
+  };
+
+  // Carregar dados quando o componente montar
+  useEffect(() => {
+    fetchEventos();
+  }, []);
+
+  // Função de refresh (puxar para atualizar)
+  const onRefresh = () => {
+    fetchEventos(true);
+  };
 
   const getTipoConfig = (tipo: string) => {
     switch (tipo) {
       case 'Alerta': 
+      case 'ALERTA':
         return { 
           color: '#FF6B6B', 
           bgColor: '#FFE8E8',
@@ -58,6 +52,7 @@ export default function HistoricoScreen() {
           textColor: '#D63031'
         };
       case 'Medição': 
+      case 'MEDICAO':
         return { 
           color: '#4ECDC4', 
           bgColor: '#E8F8F7',
@@ -65,6 +60,7 @@ export default function HistoricoScreen() {
           textColor: '#00B894'
         };
       case 'Sistema': 
+      case 'SISTEMA':
         return { 
           color: '#45B7D1', 
           bgColor: '#E8F4FD',
@@ -72,6 +68,7 @@ export default function HistoricoScreen() {
           textColor: '#0984E3'
         };
       case 'Manutenção': 
+      case 'MANUTENCAO':
         return { 
           color: '#FFA726', 
           bgColor: '#FFF4E6',
@@ -103,7 +100,9 @@ export default function HistoricoScreen() {
                 {item.tipo}
               </ThemedText>
             </View>
-            <ThemedText style={styles.timestamp}>{item.timestamp}</ThemedText>
+            <ThemedText style={styles.timestamp}>
+              {new Date(item.timestamp).toLocaleString('pt-BR')}
+            </ThemedText>
           </View>
           
           <ThemedText style={styles.descricao}>{item.descricao}</ThemedText>
@@ -123,12 +122,52 @@ export default function HistoricoScreen() {
     );
   };
 
+  // Componente de loading
+  if (loading) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0984E3" />
+        <ThemedText style={styles.loadingText}>Carregando histórico...</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  // Componente de erro
+  if (error) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ThemedText style={styles.errorText}>❌ {error}</ThemedText>
+        <ThemedText 
+          style={styles.retryText} 
+          onPress={() => fetchEventos()}
+        >
+          Tentar novamente
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
+  // Lista vazia
+  if (eventos.length === 0) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ThemedText style={styles.emptyText}>📋 Nenhum evento encontrado</ThemedText>
+        <ThemedText 
+          style={styles.retryText} 
+          onPress={() => fetchEventos()}
+        >
+          Atualizar
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <ThemedText type="title" style={styles.title}>Histórico do Sistema</ThemedText>
         <ThemedText style={styles.subtitle}>
-          Últimas atividades e medições
+          Últimas atividades e medições ({eventos.length} eventos)
         </ThemedText>
       </View>
       
@@ -139,6 +178,14 @@ export default function HistoricoScreen() {
         style={styles.lista}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listaContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#0984E3']}
+            tintColor="#0984E3"
+          />
+        }
       />
     </ThemedView>
   );
@@ -148,6 +195,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
   header: {
     padding: 20,
@@ -169,12 +222,35 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontWeight: '400',
   },
+  loadingText: {
+    marginTop: 10,
+    color: '#64748B',
+  },
+  errorText: {
+    color: '#D63031',
+    textAlign: 'center',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  emptyText: {
+    color: '#64748B',
+    textAlign: 'center',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  retryText: {
+    color: '#0984E3',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
   lista: {
     flex: 1,
   },
   listaContent: {
     padding: 16,
-    paddingBottom: 100, // espaço extra no final
+    paddingBottom: 100,
   },
   eventoCard: {
     flexDirection: 'row',
