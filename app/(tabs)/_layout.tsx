@@ -4,7 +4,6 @@ import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -21,7 +20,6 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
@@ -35,13 +33,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="monitoramento"
         options={{
           title: 'Monitoramento',
@@ -49,27 +40,26 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-  name="alertas"
-  options={{
-    title: 'Alertas',
-    tabBarIcon: ({ color }) => <AntDesign name="dashboard" size={24} color={color} />
-  }}
-/>
-<Tabs.Screen
-  name="controle"
-  options={{
-    title: 'Controle',
-    tabBarIcon: ({ color }) => <AntDesign size={28} name="bars" color={color} />,
-  }}
-/>
-<Tabs.Screen
-  name="historico"
-  options={{
-    title: 'Histórico',
-    tabBarIcon: ({ color }) => <AntDesign size={28} name="clockcircleo" color={color} />,
-  }}
-/>
-
+        name="alertas"
+        options={{
+          title: 'Alertas',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="controle"
+        options={{
+          title: 'Controle',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="historico"
+        options={{
+          title: 'Histórico',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
