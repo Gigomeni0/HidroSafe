@@ -6,8 +6,8 @@ import { getControlesSistema, executarComandoControle, paradaEmergencia, reinici
 
 export default function ControleScreen() {
   const [controles, setControles] = useState<ControlesSistema>({
-    bombaLigada: false,
-    filtroAutomatico: false,
+    bombasDrenagem: false,
+    comportasAbertas: false,
     alertasAtivos: false
   });
   const [loading, setLoading] = useState(true);
@@ -52,18 +52,17 @@ export default function ControleScreen() {
     
     try {
       await executarComandoControle(comando);
-      
-      // Atualiza o estado local imediatamente
+        // Atualiza o estado local imediatamente
       setControles(prev => ({
         ...prev,
-        [comando.tipo === 'bomba' ? 'bombaLigada' : 
-         comando.tipo === 'filtro' ? 'filtroAutomatico' : 'alertasAtivos']: comando.valor
+        [comando.tipo === 'bombas' ? 'bombasDrenagem' : 
+         comando.tipo === 'comportas' ? 'comportasAbertas' : 'alertasAtivos']: comando.valor
       }));
 
       Alert.alert(
         'Sucesso',
-        `${comando.tipo === 'bomba' ? 'Bomba' : 
-          comando.tipo === 'filtro' ? 'Filtro' : 'Alertas'} ${comando.valor ? 'ligado(s)' : 'desligado(s)'} com sucesso!`
+        `${comando.tipo === 'bombas' ? 'Bombas de Drenagem' : 
+          comando.tipo === 'comportas' ? 'Comportas' : 'Alertas'} ${comando.valor ? 'ativado(s)' : 'desativado(s)'} com sucesso!`
       );
       
     } catch (err) {
@@ -75,7 +74,6 @@ export default function ControleScreen() {
       setExecutandoComando(null);
     }
   };
-
   // Função para desligar todos os sistemas (DEBUG com API)
   const handleDesligarTodos = async () => {
     setExecutandoComando('desligar_todos');
@@ -83,14 +81,14 @@ export default function ControleScreen() {
     try {
       // Executa comandos individuais via API
       await Promise.all([
-        executarComandoControle({ tipo: 'bomba', valor: false }),
-        executarComandoControle({ tipo: 'filtro', valor: false }),
+        executarComandoControle({ tipo: 'bombas', valor: false }),
+        executarComandoControle({ tipo: 'comportas', valor: false }),
         executarComandoControle({ tipo: 'alertas', valor: false })
       ]);
       
       setControles({
-        bombaLigada: false,
-        filtroAutomatico: false,
+        bombasDrenagem: false,
+        comportasAbertas: false,
         alertasAtivos: false
       });
       
@@ -110,14 +108,14 @@ export default function ControleScreen() {
     try {
       // Executa comandos individuais via API
       await Promise.all([
-        executarComandoControle({ tipo: 'bomba', valor: true }),
-        executarComandoControle({ tipo: 'filtro', valor: true }),
+        executarComandoControle({ tipo: 'bombas', valor: true }),
+        executarComandoControle({ tipo: 'comportas', valor: true }),
         executarComandoControle({ tipo: 'alertas', valor: true })
       ]);
       
       setControles({
-        bombaLigada: true,
-        filtroAutomatico: true,
+        bombasDrenagem: true,
+        comportasAbertas: true,
         alertasAtivos: true
       });
       
@@ -164,68 +162,67 @@ export default function ControleScreen() {
             tintColor="#0984E3"
           />
         }
-      >
-        <View style={styles.header}>
+      >        <View style={styles.header}>
           <ThemedText type="title" style={styles.title}>Controle do Sistema</ThemedText>
           <ThemedText style={styles.subtitle}>
-            Gerencie os componentes do sistema de monitoramento
+            Gerencie os componentes do sistema de prevenção de enchentes
           </ThemedText>
         </View>
         
         {/* Controles dos Sistemas */}
         <View style={styles.controlesContainer}>
-          {/* Controle da Bomba */}
+          {/* Controle das Bombas de Drenagem */}
           <View style={styles.controleItem}>
             <View style={styles.controleInfo}>
               <ThemedText type="subtitle" style={styles.controleNome}>
-                💧 Bomba de Água
+                🚰 Bombas de Drenagem
               </ThemedText>
               <ThemedText style={styles.controleDescricao}>
-                Sistema de bombeamento principal
+                Sistema de bombeamento para drenagem urbana
               </ThemedText>
             </View>
             <View style={styles.controleAction}>
-              {executandoComando === 'bomba' ? (
+              {executandoComando === 'bombas' ? (
                 <ActivityIndicator size="small" color="#0984E3" />
               ) : (
                 <TouchableOpacity 
-                  onPress={() => handleComando({ tipo: 'bomba', valor: !controles.bombaLigada })}
+                  onPress={() => handleComando({ tipo: 'bombas', valor: !controles.bombasDrenagem })}
                   style={[
                     styles.customSwitch,
-                    { backgroundColor: controles.bombaLigada ? '#00B894' : '#D63031' }
+                    { backgroundColor: controles.bombasDrenagem ? '#00B894' : '#D63031' }
                   ]}
                 >
                   <ThemedText style={styles.customSwitchText}>
-                    {controles.bombaLigada ? 'ON' : 'OFF'}
+                    {controles.bombasDrenagem ? 'ON' : 'OFF'}
                   </ThemedText>
                 </TouchableOpacity>
               )}
             </View>
           </View>
 
-          {/* Controle do Filtro */}
+          {/* Controle das Comportas */}
           <View style={styles.controleItem}>
             <View style={styles.controleInfo}>
               <ThemedText type="subtitle" style={styles.controleNome}>
-                🔄 Filtro Automático
+                🚧 Comportas de Contenção
               </ThemedText>
               <ThemedText style={styles.controleDescricao}>
-                Sistema de filtragem automatizada
+                Sistema de comportas para controle de fluxo
               </ThemedText>
             </View>
             <View style={styles.controleAction}>
-              {executandoComando === 'filtro' ? (
+              {executandoComando === 'comportas' ? (
                 <ActivityIndicator size="small" color="#0984E3" />
               ) : (
                 <TouchableOpacity 
-                  onPress={() => handleComando({ tipo: 'filtro', valor: !controles.filtroAutomatico })}
+                  onPress={() => handleComando({ tipo: 'comportas', valor: !controles.comportasAbertas })}
                   style={[
                     styles.customSwitch,
-                    { backgroundColor: controles.filtroAutomatico ? '#00B894' : '#D63031' }
+                    { backgroundColor: controles.comportasAbertas ? '#FF9800' : '#4CAF50' }
                   ]}
                 >
                   <ThemedText style={styles.customSwitchText}>
-                    {controles.filtroAutomatico ? 'ON' : 'OFF'}
+                    {controles.comportasAbertas ? 'ABERTAS' : 'FECHADAS'}
                   </ThemedText>
                 </TouchableOpacity>
               )}
@@ -308,27 +305,26 @@ export default function ControleScreen() {
           <ThemedText type="subtitle" style={styles.statusTitulo}>
             📊 Status dos Sistemas
           </ThemedText>
-          
-          <View style={styles.statusGrid}>
+            <View style={styles.statusGrid}>
             <View style={styles.statusCard}>
-              <ThemedText style={styles.statusIcon}>💧</ThemedText>
-              <ThemedText style={styles.statusLabel}>Bomba</ThemedText>
+              <ThemedText style={styles.statusIcon}>🚰</ThemedText>
+              <ThemedText style={styles.statusLabel}>Bombas</ThemedText>
               <ThemedText style={[
                 styles.statusValue,
-                { color: controles.bombaLigada ? '#00B894' : '#D63031' }
+                { color: controles.bombasDrenagem ? '#00B894' : '#D63031' }
               ]}>
-                {controles.bombaLigada ? 'ON' : 'OFF'}
+                {controles.bombasDrenagem ? 'ON' : 'OFF'}
               </ThemedText>
             </View>
             
             <View style={styles.statusCard}>
-              <ThemedText style={styles.statusIcon}>🔄</ThemedText>
-              <ThemedText style={styles.statusLabel}>Filtro</ThemedText>
+              <ThemedText style={styles.statusIcon}>🚧</ThemedText>
+              <ThemedText style={styles.statusLabel}>Comportas</ThemedText>
               <ThemedText style={[
                 styles.statusValue,
-                { color: controles.filtroAutomatico ? '#00B894' : '#D63031' }
+                { color: controles.comportasAbertas ? '#FF9800' : '#4CAF50' }
               ]}>
-                {controles.filtroAutomatico ? 'ON' : 'OFF'}
+                {controles.comportasAbertas ? 'ABERTAS' : 'FECHADAS'}
               </ThemedText>
             </View>
             

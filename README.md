@@ -1,50 +1,89 @@
-# Welcome to your Expo app 👋
+📋 Documentação da API REST - HidroSafe Backend
+🔧 Configuração Base
+Base URL: http://localhost:8080/api
+Content-Type: application/json
+Métodos: GET, POST
+Autenticação: Não implementada (futuro)
+🎯 Endpoints Necessários
+1. Monitoramento de Dados
+GET /monitoramento/dados-atuais
+Descrição: Retorna dados em tempo real dos sensores
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Response:
 
-## Get started
+2. Histórico de Eventos
+GET /historico/eventos
+Descrição: Lista histórico de eventos do sistema
 
-1. Install dependencies
+Response:
 
-   ```bash
-   npm install
-   ```
+3. Sistema de Alertas
+GET /alertas
+Descrição: Retorna alertas ativos do sistema
 
-2. Start the app
+Response:
 
-   ```bash
-   npx expo start
-   ```
+4. Controle do Sistema
+GET /controles/estado
+Descrição: Retorna estado atual dos controles
 
-In the output, you'll find options to open the app in a
+Response:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+POST /controles/comando
+Descrição: Executa comando individual nos controles
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Request Body:
 
-## Get a fresh project
+Response:
 
-When you're ready, run:
+🎛️ Estruturas de Dados
+DadosMonitoramento
+Evento
+Alerta
+ControlesSistema
+ComandoControle
+⚠️ Tratamento de Erros
+Response de Erro
+Códigos de Status HTTP
+200 - Sucesso
+400 - Requisição inválida
+404 - Recurso não encontrado
+500 - Erro interno do servidor
+503 - Serviço indisponível (sensores offline)
+🔄 Fluxo de Funcionamento
+1. App Inicializa
+GET /controles/estado - Carrega estado atual
+GET /monitoramento/dados-atuais - Dados dos sensores
+GET /alertas - Alertas ativos
+2. Usuário Interage
+Clica em switch individual → POST /controles/comando
+Clica "Desligar Todos" → 3x POST /controles/comando (bomba, filtro, alertas = false)
+Clica "Ligar Todos" → 3x POST /controles/comando (bomba, filtro, alertas = true)
+3. Atualização Automática
+Pull-to-refresh nas telas
+Polling a cada 30 segundos (configurável)
+WebSocket (implementação futura)
+🛠️ Implementação Sugerida
+Framework Recomendado
+Node.js + Express.js
+Java + Spring Boot
+Python + FastAPI
+C# + ASP.NET Core
+Banco de Dados
+PostgreSQL (produção)
+SQLite (desenvolvimento)
+MongoDB (se preferir NoSQL)
+Estrutura de Tabelas
+📱 Compatibilidade com App
+O app React Native está configurado para funcionar com esta API através dos seguintes arquivos:
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+api.ts - Cliente HTTP que consome a API
+controle.tsx - Tela de controles
+monitoramento.tsx - Tela de monitoramento (a implementar)
+alertas.tsx - Tela de alertas (a implementar)
+historico.tsx - Tela de histórico
+Configuração Inicial
+Altere USE_MOCK_DATA = false em api.ts
+Configure a API_BASE_URL para seu backend
+Implemente os endpoints conforme documentado
+Está tudo pronto para integração! 🚀

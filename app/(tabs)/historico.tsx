@@ -40,7 +40,6 @@ export default function HistoricoScreen() {
   const onRefresh = () => {
     fetchEventos(true);
   };
-
   const getTipoConfig = (tipo: string) => {
     switch (tipo) {
       case 'Alerta': 
@@ -48,14 +47,14 @@ export default function HistoricoScreen() {
         return { 
           color: '#FF6B6B', 
           bgColor: '#FFE8E8',
-          icon: '⚠️',
+          icon: '🚨',
           textColor: '#D63031'
         };
       case 'Medição': 
       case 'MEDICAO':
         return { 
           color: '#4ECDC4', 
-          bgColor: '#E8F8F7',
+          bgColor: '#E8F4FD',
           icon: '📊',
           textColor: '#00B894'
         };
@@ -66,6 +65,14 @@ export default function HistoricoScreen() {
           bgColor: '#E8F4FD',
           icon: '⚙️',
           textColor: '#0984E3'
+        };
+      case 'Controle': 
+      case 'CONTROLE':
+        return { 
+          color: '#9B59B6', 
+          bgColor: '#F4E8FF',
+          icon: '🎛️',
+          textColor: '#8E44AD'
         };
       case 'Manutenção': 
       case 'MANUTENCAO':
@@ -163,11 +170,10 @@ export default function HistoricoScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
+    <ThemedView style={styles.container}>      <View style={styles.header}>
         <ThemedText type="title" style={styles.title}>Histórico do Sistema</ThemedText>
         <ThemedText style={styles.subtitle}>
-          Últimas atividades e medições ({eventos.length} eventos)
+          Eventos do sistema de prevenção de enchentes ({eventos.length} registros)
         </ThemedText>
       </View>
       

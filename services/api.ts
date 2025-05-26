@@ -5,8 +5,8 @@ const USE_MOCK_DATA = true;
 
 // Variável para simular o estado dos controles (para mock)
 let mockControleState: ControlesSistema = {
-  bombaLigada: true,
-  filtroAutomatico: true,
+  bombasDrenagem: true,
+  comportasAbertas: false,
   alertasAtivos: true
 };
 
@@ -16,34 +16,34 @@ const MOCK_EVENTOS: Evento[] = [
     id: '1',
     timestamp: new Date().toISOString(),
     tipo: 'Medição',
-    descricao: 'pH da água medido automaticamente',
-    valor: '7.2'
+    descricao: 'Nível do rio medido automaticamente',
+    valor: '2.1m'
   },
   {
     id: '2',
     timestamp: new Date(Date.now() - 5 * 60000).toISOString(), // 5 min atrás
     tipo: 'Alerta',
-    descricao: 'Turbidez alta detectada nos sensores',
-    valor: '15 NTU'
+    descricao: 'Precipitação intensa detectada',
+    valor: '45mm/h'
   },
   {
     id: '3',
     timestamp: new Date(Date.now() - 10 * 60000).toISOString(), // 10 min atrás
     tipo: 'Sistema',
-    descricao: 'Bomba de água ligada automaticamente'
+    descricao: 'Bomba de drenagem ativada automaticamente'
   },
   {
     id: '4',
     timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-    tipo: 'Medição',
-    descricao: 'Temperatura da água coletada',
-    valor: '23.5°C'
+    tipo: 'Controle',
+    descricao: 'Comporta de contenção fechada',
+    valor: 'Setor A'
   },
   {
     id: '5',
     timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
     tipo: 'Manutenção',
-    descricao: 'Limpeza automática dos sensores concluída'
+    descricao: 'Verificação dos sensores de nível concluída'
   }
 ];
 
@@ -63,10 +63,12 @@ export interface ApiResponse<T> {
 }
 
 export interface DadosMonitoramento {
-  qualidadeAgua: number;
-  temperatura: number;
-  ph: number;
-  turbidez: number;
+  nivelRio: number; // em metros
+  precipitacao: number; // mm/h
+  risco: 'baixo' | 'medio' | 'alto' | 'critico';
+  temperatura: number; // para contexto
+  localizacao: string;
+  sensorId: string;
   ultimaAtualizacao: string;
 }
 
@@ -76,16 +78,18 @@ export interface Alerta {
   titulo: string;
   descricao: string;
   timestamp: string;
+  area?: string;
+  resolvido?: boolean;
 }
 
 export interface ControlesSistema {
-  bombaLigada: boolean;
-  filtroAutomatico: boolean;
+  bombasDrenagem: boolean;
+  comportasAbertas: boolean;
   alertasAtivos: boolean;
 }
 
 export interface ComandoControle {
-  tipo: 'bomba' | 'filtro' | 'alertas' | 'emergencia';
+  tipo: 'bombas' | 'comportas' | 'alertas' | 'emergencia';
   valor: boolean;
 }
 
@@ -126,11 +130,22 @@ export async function getHistoricoEventos(): Promise<Evento[]> {
 export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
   if (USE_MOCK_DATA) {
     await delay(800);
+    
+    const nivelRio = parseFloat((Math.random() * 3 + 1).toFixed(1)); // 1-4m
+    let risco: 'baixo' | 'medio' | 'alto' | 'critico';
+    
+    if (nivelRio < 2) risco = 'baixo';
+    else if (nivelRio < 2.5) risco = 'medio';
+    else if (nivelRio < 3) risco = 'alto';
+    else risco = 'critico';
+    
     return {
-      qualidadeAgua: Math.floor(Math.random() * 30 + 70), // 70-100
-      temperatura: parseFloat((Math.random() * 10 + 20).toFixed(1)), // 20-30°C
-      ph: parseFloat((Math.random() * 2 + 6).toFixed(1)), // 6-8
-      turbidez: Math.floor(Math.random() * 20 + 5), // 5-25 NTU
+      nivelRio,
+      precipitacao: parseFloat((Math.random() * 60).toFixed(1)), // 0-60mm/h
+      risco,
+      temperatura: parseFloat((Math.random() * 10 + 18).toFixed(1)), // 18-28°C
+      localizacao: 'Centro - Rio Principal',
+      sensorId: 'HIDRO-001',
       ultimaAtualizacao: new Date().toISOString()
     };
   }
@@ -163,23 +178,33 @@ export async function getAlertas(): Promise<Alerta[]> {
       {
         id: '1',
         tipo: 'critico',
-        titulo: 'pH Crítico',
-        descricao: 'pH da água está abaixo do limite seguro (5.2)',
-        timestamp: new Date(Date.now() - 2 * 60000).toISOString()
+        titulo: 'Risco de Enchente',
+        descricao: 'Nível do rio atingiu 3.2m - evacuação recomendada',
+        timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
+        area: 'Centro'
       },
       {
         id: '2',
         tipo: 'aviso',
-        titulo: 'Turbidez Alta',
-        descricao: 'Turbidez acima do normal detectada',
-        timestamp: new Date(Date.now() - 10 * 60000).toISOString()
+        titulo: 'Precipitação Intensa',
+        descricao: 'Chuva forte detectada - monitoramento ativo',
+        timestamp: new Date(Date.now() - 10 * 60000).toISOString(),
+        area: 'Zona Norte'
       },
       {
         id: '3',
         tipo: 'info',
-        titulo: 'Manutenção Programada',
-        descricao: 'Limpeza dos sensores agendada para amanhã',
-        timestamp: new Date(Date.now() - 60 * 60000).toISOString()
+        titulo: 'Sistema Normalizado',
+        descricao: 'Bombas de drenagem funcionando corretamente',
+        timestamp: new Date(Date.now() - 30 * 60000).toISOString()
+      },
+      {
+        id: '4',
+        tipo: 'aviso',
+        titulo: 'Comporta Ativada',
+        descricao: 'Comporta do setor B fechada preventivamente',
+        timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+        area: 'Setor B'
       }
     ];
   }
@@ -241,11 +266,11 @@ export async function executarComandoControle(comando: ComandoControle): Promise
     if (Math.random() > 0.1) {
       // Atualiza o estado mock
       switch (comando.tipo) {
-        case 'bomba':
-          mockControleState.bombaLigada = comando.valor;
+        case 'bombas':
+          mockControleState.bombasDrenagem = comando.valor;
           break;
-        case 'filtro':
-          mockControleState.filtroAutomatico = comando.valor;
+        case 'comportas':
+          mockControleState.comportasAbertas = comando.valor;
           break;
         case 'alertas':
           mockControleState.alertasAtivos = comando.valor;
@@ -288,11 +313,11 @@ export async function paradaEmergencia(): Promise<boolean> {
   if (USE_MOCK_DATA) {
     await delay(1200);
     
-    // Simula a parada de emergência desligando tudo
+    // Simula a parada de emergência ativando todas as medidas de contenção
     mockControleState = {
-      bombaLigada: false,
-      filtroAutomatico: false,
-      alertasAtivos: false
+      bombasDrenagem: true, // Ativa bombas para máxima drenagem
+      comportasAbertas: false, // Fecha comportas para contenção
+      alertasAtivos: true // Mantém alertas ativos
     };
     
     console.log('🚨 PARADA DE EMERGÊNCIA EXECUTADA - Todos os sistemas desligados');
@@ -331,8 +356,8 @@ export async function reinicializarSistema(): Promise<boolean> {
     
     // Restaura configurações padrão
     mockControleState = {
-      bombaLigada: true,
-      filtroAutomatico: true,
+      bombasDrenagem: true,
+      comportasAbertas: false, // Mantém comportas fechadas por segurança
       alertasAtivos: true
     };
     
