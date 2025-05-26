@@ -185,3 +185,116 @@ export async function getAlertas(): Promise<Alerta[]> {
     throw error;
   }
 }
+  // Interface para controles do sistema
+export interface ControlesSistema {
+bombaLigada: boolean;
+filtroAutomatico: boolean;
+alertasAtivos: boolean;
+}
+
+// Interface para comandos de controle
+export interface ComandoControle {
+tipo: 'bomba' | 'filtro' | 'alertas' | 'emergencia';
+valor: boolean;
+}
+
+// Função para buscar estado atual dos controles
+export async function getControlesSistema(): Promise<ControlesSistema> {
+if (USE_MOCK_DATA) {
+    await delay(500);
+    return {
+    bombaLigada: Math.random() > 0.5,
+    filtroAutomatico: Math.random() > 0.3,
+    alertasAtivos: Math.random() > 0.2
+    };
+}
+
+try {
+    const response = await fetch(`${API_BASE_URL}/controles/estado`);
+    
+    if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result: ApiResponse<ControlesSistema> = await response.json();
+    
+    if (result.success) {
+    return result.data;
+    } else {
+    throw new Error(result.message || 'Erro ao buscar controles');
+    }
+} catch (error) {
+    console.error('Erro ao buscar controles:', error);
+    throw error;
+}
+}
+
+// Função para executar comando de controle
+export async function executarComandoControle(comando: ComandoControle): Promise<boolean> {
+if (USE_MOCK_DATA) {
+    await delay(800);
+    // Simula sucesso na maioria das vezes
+    if (Math.random() > 0.1) {
+    return true;
+    } else {
+    throw new Error('Falha na comunicação com o sistema');
+    }
+}
+
+try {
+    const response = await fetch(`${API_BASE_URL}/controles/comando`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(comando),
+    });
+    
+    if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result: ApiResponse<boolean> = await response.json();
+    
+    if (result.success) {
+    return result.data;
+    } else {
+    throw new Error(result.message || 'Erro ao executar comando');
+    }
+} catch (error) {
+    console.error('Erro ao executar comando:', error);
+    throw error;
+}
+}
+
+// Função para parada de emergência
+export async function paradaEmergencia(): Promise<boolean> {
+if (USE_MOCK_DATA) {
+    await delay(1200);
+    return true; // Sempre sucesso para emergência
+}
+
+try {
+    const response = await fetch(`${API_BASE_URL}/controles/emergencia`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    });
+    
+    if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result: ApiResponse<boolean> = await response.json();
+    
+    if (result.success) {
+    return result.data;
+    } else {
+    throw new Error(result.message || 'Erro na parada de emergência');
+    }
+    } catch (error) {
+        console.error('Erro na parada de emergência:', error);
+        throw error;
+    }
+}
