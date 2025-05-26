@@ -3,6 +3,13 @@ const API_BASE_URL = 'http://localhost:8080/api'; // Seu backend futuro
 // Flag para usar dados mockados (mude para false quando o backend estiver pronto)
 const USE_MOCK_DATA = true;
 
+// Variável para simular o estado dos controles (para mock)
+let mockControleState: ControlesSistema = {
+  bombaLigada: true,
+  filtroAutomatico: true,
+  alertasAtivos: true
+};
+
 // Dados simulados para desenvolvimento
 const MOCK_EVENTOS: Evento[] = [
   {
@@ -40,6 +47,7 @@ const MOCK_EVENTOS: Evento[] = [
   }
 ];
 
+// ===== INTERFACES =====
 export interface Evento {
   id: string;
   timestamp: string;
@@ -54,18 +62,46 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
+export interface DadosMonitoramento {
+  qualidadeAgua: number;
+  temperatura: number;
+  ph: number;
+  turbidez: number;
+  ultimaAtualizacao: string;
+}
+
+export interface Alerta {
+  id: string;
+  tipo: 'critico' | 'aviso' | 'info';
+  titulo: string;
+  descricao: string;
+  timestamp: string;
+}
+
+export interface ControlesSistema {
+  bombaLigada: boolean;
+  filtroAutomatico: boolean;
+  alertasAtivos: boolean;
+}
+
+export interface ComandoControle {
+  tipo: 'bomba' | 'filtro' | 'alertas' | 'emergencia';
+  valor: boolean;
+}
+
+// ===== UTILITÁRIOS =====
 // Função para simular delay de rede
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// ===== FUNÇÕES DA API =====
+
 // Função para buscar histórico de eventos
 export async function getHistoricoEventos(): Promise<Evento[]> {
-  // Se usar dados mockados
   if (USE_MOCK_DATA) {
     await delay(1000); // Simula delay de 1 segundo
     return MOCK_EVENTOS;
   }
 
-  // Código real para o backend (quando estiver pronto)
   try {
     const response = await fetch(`${API_BASE_URL}/historico/eventos`);
     
@@ -87,14 +123,6 @@ export async function getHistoricoEventos(): Promise<Evento[]> {
 }
 
 // Função para buscar dados de monitoramento
-export interface DadosMonitoramento {
-  qualidadeAgua: number;
-  temperatura: number;
-  ph: number;
-  turbidez: number;
-  ultimaAtualizacao: string;
-}
-
 export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
   if (USE_MOCK_DATA) {
     await delay(800);
@@ -107,7 +135,6 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
     };
   }
 
-  // Código real para o backend
   try {
     const response = await fetch(`${API_BASE_URL}/monitoramento/dados-atuais`);
     
@@ -129,14 +156,6 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
 }
 
 // Função para buscar alertas
-export interface Alerta {
-  id: string;
-  tipo: 'critico' | 'aviso' | 'info';
-  titulo: string;
-  descricao: string;
-  timestamp: string;
-}
-
 export async function getAlertas(): Promise<Alerta[]> {
   if (USE_MOCK_DATA) {
     await delay(600);
@@ -165,7 +184,6 @@ export async function getAlertas(): Promise<Alerta[]> {
     ];
   }
 
-  // Código real para o backend
   try {
     const response = await fetch(`${API_BASE_URL}/alertas`);
     
@@ -185,116 +203,164 @@ export async function getAlertas(): Promise<Alerta[]> {
     throw error;
   }
 }
-  // Interface para controles do sistema
-export interface ControlesSistema {
-bombaLigada: boolean;
-filtroAutomatico: boolean;
-alertasAtivos: boolean;
-}
-
-// Interface para comandos de controle
-export interface ComandoControle {
-tipo: 'bomba' | 'filtro' | 'alertas' | 'emergencia';
-valor: boolean;
-}
 
 // Função para buscar estado atual dos controles
 export async function getControlesSistema(): Promise<ControlesSistema> {
-if (USE_MOCK_DATA) {
+  if (USE_MOCK_DATA) {
     await delay(500);
-    return {
-    bombaLigada: Math.random() > 0.5,
-    filtroAutomatico: Math.random() > 0.3,
-    alertasAtivos: Math.random() > 0.2
-    };
-}
+    // Retorna o estado atual simulado
+    return { ...mockControleState };
+  }
 
-try {
+  try {
     const response = await fetch(`${API_BASE_URL}/controles/estado`);
     
     if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const result: ApiResponse<ControlesSistema> = await response.json();
     
     if (result.success) {
-    return result.data;
+      return result.data;
     } else {
-    throw new Error(result.message || 'Erro ao buscar controles');
+      throw new Error(result.message || 'Erro ao buscar controles');
     }
-} catch (error) {
+  } catch (error) {
     console.error('Erro ao buscar controles:', error);
     throw error;
-}
+  }
 }
 
 // Função para executar comando de controle
 export async function executarComandoControle(comando: ComandoControle): Promise<boolean> {
-if (USE_MOCK_DATA) {
+  if (USE_MOCK_DATA) {
     await delay(800);
+    
     // Simula sucesso na maioria das vezes
     if (Math.random() > 0.1) {
-    return true;
+      // Atualiza o estado mock
+      switch (comando.tipo) {
+        case 'bomba':
+          mockControleState.bombaLigada = comando.valor;
+          break;
+        case 'filtro':
+          mockControleState.filtroAutomatico = comando.valor;
+          break;
+        case 'alertas':
+          mockControleState.alertasAtivos = comando.valor;
+          break;
+      }
+      return true;
     } else {
-    throw new Error('Falha na comunicação com o sistema');
+      throw new Error('Falha na comunicação com o sistema');
     }
-}
+  }
 
-try {
+  try {
     const response = await fetch(`${API_BASE_URL}/controles/comando`, {
-    method: 'POST',
-    headers: {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(comando),
+      },
+      body: JSON.stringify(comando),
     });
     
     if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const result: ApiResponse<boolean> = await response.json();
     
     if (result.success) {
-    return result.data;
+      return result.data;
     } else {
-    throw new Error(result.message || 'Erro ao executar comando');
+      throw new Error(result.message || 'Erro ao executar comando');
     }
-} catch (error) {
+  } catch (error) {
     console.error('Erro ao executar comando:', error);
     throw error;
-}
+  }
 }
 
 // Função para parada de emergência
 export async function paradaEmergencia(): Promise<boolean> {
-if (USE_MOCK_DATA) {
+  if (USE_MOCK_DATA) {
     await delay(1200);
+    
+    // Simula a parada de emergência desligando tudo
+    mockControleState = {
+      bombaLigada: false,
+      filtroAutomatico: false,
+      alertasAtivos: false
+    };
+    
+    console.log('🚨 PARADA DE EMERGÊNCIA EXECUTADA - Todos os sistemas desligados');
     return true; // Sempre sucesso para emergência
-}
+  }
 
-try {
+  try {
     const response = await fetch(`${API_BASE_URL}/controles/emergencia`, {
-    method: 'POST',
-    headers: {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
-    },
+      },
     });
     
     if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const result: ApiResponse<boolean> = await response.json();
     
     if (result.success) {
-    return result.data;
+      return result.data;
     } else {
-    throw new Error(result.message || 'Erro na parada de emergência');
+      throw new Error(result.message || 'Erro na parada de emergência');
     }
-    } catch (error) {
-        console.error('Erro na parada de emergência:', error);
-        throw error;
+  } catch (error) {
+    console.error('Erro na parada de emergência:', error);
+    throw error;
+  }
+}
+
+// Função para reinicializar sistema após emergência
+export async function reinicializarSistema(): Promise<boolean> {
+  if (USE_MOCK_DATA) {
+    await delay(1500);
+    
+    // Restaura configurações padrão
+    mockControleState = {
+      bombaLigada: true,
+      filtroAutomatico: true,
+      alertasAtivos: true
+    };
+    
+    console.log('🔄 SISTEMA REINICIALIZADO - Configurações restauradas');
+    return true;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/controles/reinicializar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
+    const result: ApiResponse<boolean> = await response.json();
+    
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new Error(result.message || 'Erro ao reinicializar sistema');
+    }
+  } catch (error) {
+    console.error('Erro ao reinicializar sistema:', error);
+    throw error;
+  }
 }
