@@ -264,6 +264,3 @@ axios.get<DTO[]>(`${API_BASE_URL}/historico/eventos`);
 
 Configure `API_BASE_URL` e `USE_MOCK_DATA = false` em `api.ts` antes de rodar.
 
----
-
-Pronto! Com essa documentação, um agente IA ou desenvolvedor poderá gerar o backend em Spring Boot sem maiores dúvidas. 🚀

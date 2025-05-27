@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8080/api'; // Seu backend futuro
 
 // Flag para usar dados mockados (mude para false quando o backend estiver pronto)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Variável para simular o estado dos controles (para mock)
 let mockControleState: ControlesSistema = {
@@ -44,6 +44,33 @@ const MOCK_EVENTOS: Evento[] = [
     timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
     tipo: 'Manutenção',
     descricao: 'Verificação dos sensores de nível concluída'
+  }
+];
+
+// Dados simulados para alertas
+const MOCK_ALERTAS: Alerta[] = [
+  {
+    id: '1',
+    tipo: 'critico',
+    titulo: 'Risco de Enchente',
+    descricao: 'Nível do rio atingiu 3.2m - evacuação recomendada',
+    timestamp: new Date().toISOString(),
+    area: 'Centro'
+  },
+  {
+    id: '2',
+    tipo: 'aviso',
+    titulo: 'Precipitação Intensa',
+    descricao: 'Chuva forte detectada - monitoramento ativo',
+    timestamp: new Date(Date.now() - 10 * 60000).toISOString(),
+    area: 'Zona Norte'
+  },
+  {
+    id: '3',
+    tipo: 'info',
+    titulo: 'Sistema Normalizado',
+    descricao: 'Bombas de drenagem funcionando corretamente',
+    timestamp: new Date(Date.now() - 30 * 60000).toISOString()
   }
 ];
 
@@ -101,28 +128,16 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Função para buscar histórico de eventos
 export async function getHistoricoEventos(): Promise<Evento[]> {
-  if (USE_MOCK_DATA) {
-    await delay(1000); // Simula delay de 1 segundo
-    return MOCK_EVENTOS;
-  }
+  if (USE_MOCK_DATA) { await delay(1000); return MOCK_EVENTOS; }
 
   try {
     const response = await fetch(`${API_BASE_URL}/historico/eventos`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result: ApiResponse<Evento[]> = await response.json();
-    
-    if (result.success) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Erro ao buscar histórico');
-    }
-  } catch (error) {
-    console.error('Erro ao buscar histórico:', error);
-    throw error;
+    if (!response.ok) throw new Error(`Erro ${response.status} ao buscar histórico.`);
+    const data: Evento[] = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('getHistoricoEventos:', error);
+    throw new Error(`Não foi possível carregar o histórico. ${error.message}`);
   }
 }
 
@@ -152,80 +167,40 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
 
   try {
     const response = await fetch(`${API_BASE_URL}/monitoramento/dados-atuais`);
-    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const msg = response.status === 404
+        ? 'Dados de monitoramento não encontrados.'
+        : `Erro ${response.status} ao buscar dados de monitoramento.`;
+      throw new Error(msg);
     }
-    
-    const result: ApiResponse<DadosMonitoramento> = await response.json();
-    
-    if (result.success) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Erro ao buscar dados de monitoramento');
-    }
-  } catch (error) {
-    console.error('Erro ao buscar dados de monitoramento:', error);
-    throw error;
+    const data: DadosMonitoramento = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('getDadosMonitoramento:', error);
+    throw new Error(`Não foi possível carregar os dados de monitoramento. ${error.message}`);
   }
 }
 
-// Função para buscar alertas
 export async function getAlertas(): Promise<Alerta[]> {
   if (USE_MOCK_DATA) {
     await delay(600);
-    return [
-      {
-        id: '1',
-        tipo: 'critico',
-        titulo: 'Risco de Enchente',
-        descricao: 'Nível do rio atingiu 3.2m - evacuação recomendada',
-        timestamp: new Date(Date.now() - 2 * 60000).toISOString(),
-        area: 'Centro'
-      },
-      {
-        id: '2',
-        tipo: 'aviso',
-        titulo: 'Precipitação Intensa',
-        descricao: 'Chuva forte detectada - monitoramento ativo',
-        timestamp: new Date(Date.now() - 10 * 60000).toISOString(),
-        area: 'Zona Norte'
-      },
-      {
-        id: '3',
-        tipo: 'info',
-        titulo: 'Sistema Normalizado',
-        descricao: 'Bombas de drenagem funcionando corretamente',
-        timestamp: new Date(Date.now() - 30 * 60000).toISOString()
-      },
-      {
-        id: '4',
-        tipo: 'aviso',
-        titulo: 'Comporta Ativada',
-        descricao: 'Comporta do setor B fechada preventivamente',
-        timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-        area: 'Setor B'
-      }
-    ];
+    return MOCK_ALERTAS;
   }
 
   try {
     const response = await fetch(`${API_BASE_URL}/alertas`);
-    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const msg = response.status === 404
+        ? 'Nenhum alerta encontrado.'
+        : `Erro ${response.status} ao buscar alertas.`;
+      throw new Error(msg);
     }
-    
-    const result: ApiResponse<Alerta[]> = await response.json();
-    
-    if (result.success) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Erro ao buscar alertas');
-    }
-  } catch (error) {
-    console.error('Erro ao buscar alertas:', error);
-    throw error;
+    // Recebe diretamente um array de Alertas
+    const data: Alerta[] = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('getAlertas:', error);
+    throw new Error(`Não foi possível carregar os alertas. ${error.message}`);
   }
 }
 
@@ -239,21 +214,14 @@ export async function getControlesSistema(): Promise<ControlesSistema> {
 
   try {
     const response = await fetch(`${API_BASE_URL}/controles/estado`);
-    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Erro ${response.status} ao buscar controles.`);
     }
-    
-    const result: ApiResponse<ControlesSistema> = await response.json();
-    
-    if (result.success) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Erro ao buscar controles');
-    }
-  } catch (error) {
-    console.error('Erro ao buscar controles:', error);
-    throw error;
+    const data: ControlesSistema = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('getControlesSistema:', error);
+    throw new Error(`Não foi possível carregar os controles. ${error.message}`);
   }
 }
 
@@ -291,20 +259,24 @@ export async function executarComandoControle(comando: ComandoControle): Promise
       body: JSON.stringify(comando),
     });
     
+    // Verifica status da resposta e captura mensagem de erro do backend
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorMsg: string;
+      try {
+        const errJson = await response.json();
+        errorMsg = errJson.message || JSON.stringify(errJson);
+      } catch {
+        errorMsg = `HTTP error! status: ${response.status}`;
+      }
+      throw new Error(`Erro ${response.status} ao executar comando de controle. ${errorMsg}`);
     }
-    
-    const result: ApiResponse<boolean> = await response.json();
-    
-    if (result.success) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Erro ao executar comando');
-    }
-  } catch (error) {
-    console.error('Erro ao executar comando:', error);
-    throw error;
+
+    // Parse o JSON puro (boolean) retornado pelo backend
+    const data: boolean = await response.json();
+    return data;
+  } catch (error: any) {
+    console.error('executarComandoControle:', error);
+    throw new Error(`Erro ao executar comando de controle. ${error.message}`);
   }
 }
 
