@@ -1,3 +1,8 @@
+#Integrantes
+- Isabela Zimerer Pizani - RM555855
+- João Antonio - RM556525
+- Renan Cassiano de Araújo - RM555250
+  
 # HidroSafe
 
 HidroSafe é uma solução completa que combina um aplicativo móvel **React Native** e um backend **Spring Boot** para:
