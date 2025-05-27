@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, RefreshControl, Alert, Dimensions, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, RefreshControl, Alert, Dimensions, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { getDadosMonitoramento, type DadosMonitoramento } from '@/services/api';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,14 +10,19 @@ const { width } = Dimensions.get('window');
 export default function MonitoramentoScreen() {
   const [dadosMonitoramento, setDadosMonitoramento] = useState<DadosMonitoramento | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const carregarDados = async () => {
+    setError(false);
     try {
       const dados = await getDadosMonitoramento();
+      console.log('Monitoramento data received:', dados);
       setDadosMonitoramento(dados);
+      setError(false);
     } catch (error) {
       console.error('Erro ao carregar dados de monitoramento:', error);
+      setError(true);
       Alert.alert('Erro', 'Não foi possível carregar os dados de monitoramento');
     }
   };
@@ -42,6 +48,13 @@ export default function MonitoramentoScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // Atualizar dados ao focar aba
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarDados();
+    }, [])
+  );
+
   const getStatusColor = (valor: number, limite: number) => {
     if (valor > limite) return '#EF4444';
     if (valor > limite * 0.8) return '#F59E0B';
@@ -62,11 +75,21 @@ export default function MonitoramentoScreen() {
         return { cor: '#6B7280', texto: 'Indefinido', emoji: '⚪' };
     }
   };
-  if (loading && !dadosMonitoramento) {
+  if (loading) {
     return (
       <ThemedView style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#0984E3" />
         <ThemedText style={styles.loadingText}>Carregando dados...</ThemedText>
+      </ThemedView>
+    );
+  }
+  if (!loading && error) {
+    return (
+      <ThemedView style={styles.centerContainer}>
+        <ThemedText style={styles.loadingText}>Falha ao carregar dados</ThemedText>
+        <TouchableOpacity onPress={() => { setLoading(true); carregarDados().finally(() => setLoading(false)); }}>
+          <ThemedText style={{ color: '#0984E3', marginTop: 16 }}>Tentar novamente</ThemedText>
+        </TouchableOpacity>
       </ThemedView>
     );
   }
@@ -101,7 +124,14 @@ export default function MonitoramentoScreen() {
                 </ThemedText>
               </View>
               <ThemedText style={styles.lastUpdate}>
-                Última atualização: {new Date(dadosMonitoramento.ultimaAtualizacao).toLocaleTimeString('pt-BR')}
+                Última atualização: {
+                  (() => {
+                    const dt = new Date(dadosMonitoramento.ultimaAtualizacao);
+                    return isNaN(dt.getTime())
+                      ? String(dadosMonitoramento.ultimaAtualizacao || '—')
+                      : dt.toLocaleTimeString('pt-BR');
+                  })()
+                }
               </ThemedText>
             </View>
 

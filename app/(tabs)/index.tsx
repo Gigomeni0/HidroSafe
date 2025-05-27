@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Dimensions, View, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/ThemedText';
 import { getDadosMonitoramento, getAlertas, getControlesSistema, type DadosMonitoramento, type Alerta, type ControlesSistema } from '@/services/api';
 
@@ -11,8 +12,10 @@ export default function HomeScreen() {
   const [controles, setControles] = useState<ControlesSistema | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
   const carregarDados = async () => {
+    setError(false);
     try {
       const [dadosResponse, alertasResponse, controlesResponse] = await Promise.all([
         getDadosMonitoramento(),
@@ -23,8 +26,10 @@ export default function HomeScreen() {
       setDadosMonitoramento(dadosResponse);
       setAlertas(alertasResponse);
       setControles(controlesResponse);
+      setError(false);
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);
+      setError(true);
       Alert.alert('Erro', 'Não foi possível carregar os dados do dashboard');
     }
   };
@@ -49,6 +54,31 @@ export default function HomeScreen() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarDados();
+    }, [])
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0984E3" />
+        <ThemedText style={styles.loadingText}>🌊 Carregando HidroSafe...</ThemedText>
+      </View>
+    );
+  }
+  if (!loading && error) {
+    return (
+      <View style={styles.centerContainer}>
+        <ThemedText style={styles.loadingText}>Falha ao carregar dados</ThemedText>
+        <TouchableOpacity onPress={() => { setLoading(true); carregarDados().finally(() => setLoading(false)); }}>
+          <ThemedText style={{ color: '#0984E3', marginTop: 16 }}>Tentar novamente</ThemedText>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const getRiscoInfo = (risco: string) => {
     switch (risco) {
@@ -91,15 +121,6 @@ export default function HomeScreen() {
   };
 
   const alertasImportantes = alertas.filter(a => a.tipo === 'critico' || a.tipo === 'aviso');
-
-  if (loading && !dadosMonitoramento) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0984E3" />
-        <ThemedText style={styles.loadingText}>🌊 Carregando HidroSafe...</ThemedText>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>

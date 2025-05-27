@@ -1,4 +1,10 @@
-const API_BASE_URL = 'http://localhost:8080/api'; // Seu backend futuro
+import { Platform } from 'react-native';
+
+// Ajusta host para emulador Android (10.0.2.2) ou localhost em iOS/dispositivo
+const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const API_BASE_URL = `http://${HOST}:8080/api`; // Base genérica para endpoints (alertas, controle, histórico)
+// Base específica para API de monitoramento (conforme backend exige /api/monitoramento)
+const API_MONITORAMENTO_URL = `http://${HOST}:8080/api/monitoramento`;
 
 // Flag para usar dados mockados (mude para false quando o backend estiver pronto)
 const USE_MOCK_DATA = false;
@@ -166,15 +172,38 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/monitoramento/dados-atuais`);
+    const url = `${API_MONITORAMENTO_URL}/dados-atuais`;
+    console.log('getDadosMonitoramento: fetching', url);
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) {
       const msg = response.status === 404
         ? 'Dados de monitoramento não encontrados.'
         : `Erro ${response.status} ao buscar dados de monitoramento.`;
       throw new Error(msg);
     }
-    const data: DadosMonitoramento = await response.json();
-    return data;
+    // Recebe raw JSON e normaliza campos possivelmente com underscore
+    const raw: any = await response.json();
+    console.log('getDadosMonitoramento raw response:', raw);
+    // Mapeia campos do backend para formato esperado
+    const nivelRaw = raw.nivelAgua; // em cm ou unidade específica
+    // Converte para metros (assumindo entrada em cm), arredonda
+    const nivelRio = typeof nivelRaw === 'number' ? parseFloat((nivelRaw / 100).toFixed(2)) : 0;
+    const precipitacao = typeof raw.vazao === 'number' ? parseFloat(raw.vazao.toFixed(1)) : 0;
+    const temperatura = typeof raw.pressao === 'number' ? parseFloat(raw.pressao.toFixed(1)) : 0;
+    // Calcula risco baseado em nível do rio em metros
+    const risco: 'baixo' | 'medio' | 'alto' | 'critico' =
+      nivelRio < 2 ? 'baixo' : nivelRio < 2.5 ? 'medio' : nivelRio < 3 ? 'alto' : 'critico';
+    const normalized: DadosMonitoramento = {
+      nivelRio,
+      precipitacao,
+      temperatura,
+      risco,
+      localizacao: raw.localizacao ?? '',
+      sensorId: String(raw.id ?? ''),
+      ultimaAtualizacao: raw.timestamp // ISO string
+    };
+    console.log('getDadosMonitoramento normalized:', normalized);
+    return normalized;
   } catch (error: any) {
     console.error('getDadosMonitoramento:', error);
     throw new Error(`Não foi possível carregar os dados de monitoramento. ${error.message}`);
@@ -188,7 +217,9 @@ export async function getAlertas(): Promise<Alerta[]> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/alertas`);
+    const url = `${API_BASE_URL}/alertas`;
+    console.log('getAlertas: fetching', url);
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) {
       const msg = response.status === 404
         ? 'Nenhum alerta encontrado.'
@@ -213,7 +244,9 @@ export async function getControlesSistema(): Promise<ControlesSistema> {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/controles/estado`);
+    const url = `${API_BASE_URL}/controles/estado`;
+    console.log('getControlesSistema: fetching', url);
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) {
       throw new Error(`Erro ${response.status} ao buscar controles.`);
     }

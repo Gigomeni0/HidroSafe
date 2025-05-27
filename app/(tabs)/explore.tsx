@@ -1,23 +1,25 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Alert, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, Alert, View, Linking } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 export default function ExploreScreen() {
+  const githubFrontUrl = 'https://github.com/Gigomeni0/HidroSafe';
+  const githubBackUrl = 'https://github.com/Gigomeni0/HidroSafe';
   const recursos = [
     {
       id: '1',
       titulo: '📱 Documentação do App',
       descricao: 'Guia completo de uso do HidroSafe',
       icone: '📚',
-      acao: () => Alert.alert('Documentação', 'Em breve disponível!')
+      acao: () => Linking.openURL(githubFrontUrl)
     },
     {
       id: '2',
       titulo: '🌊 Sistema de Monitoramento',
       descricao: 'Como funciona o sistema de prevenção',
       icone: '⚙️',
-      acao: () => Alert.alert('Sistema', 'Informações técnicas em desenvolvimento')
+      acao: () => Linking.openURL(githubBackUrl)
     },
     {
       id: '3',
