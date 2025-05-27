@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { getAlertas, type Alerta } from '@/services/api';
@@ -93,60 +93,56 @@ export default function AlertasScreen() {
     aviso: alertas.filter(a => a.tipo === 'aviso').length,
     info: alertas.filter(a => a.tipo === 'info').length,
     total: alertas.length
-  };
-
-  if (loading && alertas.length === 0) {
+  };  if (loading && alertas.length === 0) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ThemedText>Carregando alertas...</ThemedText>
-        </ThemedView>
+      <ThemedView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0984E3" />
+        <ThemedText style={styles.loadingText}>Carregando alertas...</ThemedText>
       </ThemedView>
     );
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <ThemedView style={styles.content}>
-        {/* Header */}
-        <ThemedView style={styles.header}>
-          <ThemedText type="title">Alertas</ThemedText>
-          <ThemedText style={styles.subtitle}>
-            {contadores.total} alertas • {contadores.critico} críticos
-          </ThemedText>
-        </ThemedView>
-
+    <ThemedView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>Alertas do Sistema</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          {contadores.total} alertas • {contadores.critico} críticos
+        </ThemedText>
+      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0984E3']} tintColor="#0984E3" />}
+        contentContainerStyle={styles.content}
+      >
         {/* Resumo */}
-        <ThemedView style={styles.summaryCard}>
-          <ThemedText style={styles.summaryTitle}>Resumo de Alertas</ThemedText>
-          <ThemedView style={styles.summaryGrid}>
-            <ThemedView style={[styles.summaryItem, { backgroundColor: '#FFEBEE' }]}>
+        <View style={styles.summaryCard}>
+          <ThemedText style={styles.summaryTitle}>📊 Resumo de Alertas</ThemedText>
+          <View style={styles.summaryGrid}>
+            <View style={[styles.summaryItem, { backgroundColor: '#FFEBEE' }]}>
               <ThemedText style={[styles.summaryNumber, { color: '#F44336' }]}>
                 {contadores.critico}
               </ThemedText>
               <ThemedText style={styles.summaryLabel}>Críticos</ThemedText>
-            </ThemedView>            <ThemedView style={[styles.summaryItem, { backgroundColor: '#FFF8E1' }]}>
+            </View>
+            <View style={[styles.summaryItem, { backgroundColor: '#FFF8E1' }]}>
               <ThemedText style={[styles.summaryNumber, { color: '#FF9800' }]}>
                 {contadores.aviso}
               </ThemedText>
               <ThemedText style={styles.summaryLabel}>Avisos</ThemedText>
-            </ThemedView>
-            <ThemedView style={[styles.summaryItem, { backgroundColor: '#E3F2FD' }]}>
+            </View>
+            <View style={[styles.summaryItem, { backgroundColor: '#E3F2FD' }]}>
               <ThemedText style={[styles.summaryNumber, { color: '#2196F3' }]}>
                 {contadores.info}
               </ThemedText>
               <ThemedText style={styles.summaryLabel}>Informativos</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
+            </View>
+          </View>
+        </View>
 
         {/* Filtros */}
-        <ThemedView style={styles.filterContainer}>
+        <View style={styles.filterContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TouchableOpacity
               style={[
@@ -175,7 +171,8 @@ export default function AlertasScreen() {
               ]}>
                 Críticos ({contadores.critico})
               </ThemedText>
-            </TouchableOpacity>            <TouchableOpacity
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
                 styles.filterButton,
                 filtroTipo === 'aviso' && styles.filterButtonActive
@@ -204,19 +201,19 @@ export default function AlertasScreen() {
               </ThemedText>
             </TouchableOpacity>
           </ScrollView>
-        </ThemedView>
+        </View>
 
         {/* Lista de Alertas */}
-        <ThemedView style={styles.alertsList}>
+        <View style={styles.alertsList}>
           {alertasFiltrados.length === 0 ? (
-            <ThemedView style={styles.emptyState}>
+            <View style={styles.emptyState}>
               <ThemedText style={styles.emptyStateText}>
                 {filtroTipo === 'todos' 
                   ? 'Nenhum alerta encontrado'
                   : `Nenhum alerta do tipo "${filtroTipo}" encontrado`
                 }
               </ThemedText>
-            </ThemedView>
+            </View>
           ) : (
             alertasFiltrados.map((alerta) => {
               const config = getAlertaConfig(alerta.tipo);
@@ -238,21 +235,21 @@ export default function AlertasScreen() {
                     );
                   }}
                 >
-                  <ThemedView style={styles.alertaHeader}>
-                    <ThemedView style={styles.alertaTitleContainer}>
+                  <View style={styles.alertaHeader}>
+                    <View style={styles.alertaTitleContainer}>
                       <ThemedText style={styles.alertaIcon}>{config.icon}</ThemedText>
                       <ThemedText style={[styles.alertaTitulo, { color: config.color }]}>
                         {alerta.titulo}
                       </ThemedText>
-                    </ThemedView>
+                    </View>
                     <ThemedText style={styles.alertaTempo}>
                       {formatarTempo(alerta.timestamp)}
                     </ThemedText>
-                  </ThemedView>
+                  </View>
                   <ThemedText style={styles.alertaDescricao}>
                     {alerta.descricao}
                   </ThemedText>
-                  <ThemedView style={styles.alertaFooter}>
+                  <View style={styles.alertaFooter}>
                     <ThemedText style={styles.alertaTipo}>
                       {alerta.tipo.toUpperCase()}
                     </ThemedText>
@@ -261,63 +258,74 @@ export default function AlertasScreen() {
                         ✓ Resolvido
                       </ThemedText>
                     )}
-                  </ThemedView>
+                  </View>
                 </TouchableOpacity>
               );
             })
           )}
-        </ThemedView>
-
+        </View>
         {/* Footer */}
-        <ThemedView style={styles.footer}>
-          <ThemedText style={styles.footerText}>
-            Última atualização: {new Date().toLocaleTimeString('pt-BR')}
-          </ThemedText>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
-  );
+        <View style={styles.footer}>
+           <ThemedText style={styles.footerText}>
+             Última atualização: {new Date().toLocaleTimeString('pt-BR')}
+           </ThemedText>
+        </View>
+       </ScrollView>
+     </ThemedView>
+   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
-  content: {
-    padding: 16,
-  },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 20,
+    padding: 20,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#1A202C',
+    fontSize: 24,
+    fontWeight: '700',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '400',
   },
-  summaryCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+  loadingText: {
+    marginTop: 10,
+    color: '#64748B',
+  },  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    margin: 16,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   summaryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#1A202C',
+    textAlign: 'center',
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -328,63 +336,81 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     marginHorizontal: 4,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   summaryNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#64748B',
     marginTop: 4,
-  },
-  filterContainer: {
-    marginBottom: 16,
+    fontWeight: '500',
+  },  filterContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    margin: 16,
+    marginTop: 0,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
   },
   filterButton: {
-    backgroundColor: 'white',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E2E8F0',
   },
   filterButtonActive: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    backgroundColor: '#0984E3',
+    borderColor: '#0984E3',
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: '#64748B',
+    fontWeight: '500',
   },
   filterButtonTextActive: {
-    color: 'white',
+    color: '#FFFFFF',
     fontWeight: '600',
-  },
-  alertsList: {
-    gap: 12,
+  },  alertsList: {
+    margin: 16,
+    marginTop: 0,
   },
   emptyState: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 40,
     alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  alertaCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
-    elevation: 5,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  alertaCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    marginBottom: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
   },
   alertaHeader: {
     flexDirection: 'row',
@@ -400,19 +426,19 @@ const styles = StyleSheet.create({
   alertaIcon: {
     fontSize: 20,
     marginRight: 8,
-  },
-  alertaTitulo: {
+  },  alertaTitulo: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     flex: 1,
   },
   alertaTempo: {
     fontSize: 12,
-    color: '#999',
+    color: '#64748B',
+    fontWeight: '500',
   },
   alertaDescricao: {
     fontSize: 14,
-    color: '#666',
+    color: '#374151',
     marginBottom: 12,
     lineHeight: 20,
   },
@@ -423,25 +449,28 @@ const styles = StyleSheet.create({
   },
   alertaTipo: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#999',
-    backgroundColor: '#f0f0f0',
+    fontWeight: '700',
+    color: '#64748B',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   alertaResolvido: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#00B894',
     fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 40,
   },
   footerText: {
     fontSize: 12,
-    color: '#999',
+    color: '#64748B',
+  },
+  content: {
+    paddingBottom: 20,
   },
 });

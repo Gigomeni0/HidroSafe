@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Dimensions, View, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { getDadosMonitoramento, getAlertas, getControlesSistema, type DadosMonitoramento, type Alerta, type ControlesSistema } from '@/services/api';
 
 const { width } = Dimensions.get('window');
@@ -95,41 +94,34 @@ export default function HomeScreen() {
 
   if (loading && !dadosMonitoramento) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ThemedText style={styles.loadingText}>🌊 Carregando HidroSafe...</ThemedText>
-        </ThemedView>
-      </ThemedView>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0984E3" />
+        <ThemedText style={styles.loadingText}>🌊 Carregando HidroSafe...</ThemedText>
+      </View>
     );
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <ThemedView style={styles.content}>
-        {/* Header Acolhedor */}
-        <ThemedView style={styles.welcomeHeader}>
-          <ThemedText style={styles.welcomeTitle}>🛡️ HidroSafe</ThemedText>
-          <ThemedText style={styles.welcomeSubtitle}>Protegendo nossa comunidade</ThemedText>
-          <ThemedText style={styles.welcomeTime}>
-            {new Date().toLocaleString('pt-BR', { 
-              weekday: 'long', 
-              day: 'numeric', 
-              month: 'long',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#0984E3"]} tintColor="#0984E3" />}
+        contentContainerStyle={styles.content}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.title}>🛡️ HidroSafe</ThemedText>
+          <ThemedText style={styles.subtitle}>Protegendo nossa comunidade</ThemedText>
+          <ThemedText style={styles.subtitle}>
+            {new Date().toLocaleString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
           </ThemedText>
-        </ThemedView>
+        </View>
 
         {/* Status Principal */}
         {dadosMonitoramento && (
-          <ThemedView style={styles.statusPrincipal}>
-            <ThemedView style={[styles.statusCard, { borderLeftColor: getRiscoInfo(dadosMonitoramento.risco).cor }]}>
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>📋 Status Principal</ThemedText>
+            <View style={[styles.statusCard, { borderLeftColor: getRiscoInfo(dadosMonitoramento.risco).cor }]}>
               <ThemedText style={styles.statusEmoji}>
                 {getRiscoInfo(dadosMonitoramento.risco).emoji}
               </ThemedText>
@@ -142,140 +134,140 @@ export default function HomeScreen() {
               <ThemedText style={styles.statusLocal}>
                 📍 {dadosMonitoramento.localizacao}
               </ThemedText>
-            </ThemedView>
-          </ThemedView>
+            </View>
+          </View>
         )}
 
         {/* Alertas Importantes */}
         {alertasImportantes.length > 0 && (
-          <ThemedView style={styles.alertasSection}>
+          <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>📢 Informações Importantes</ThemedText>
             {alertasImportantes.slice(0, 3).map(alerta => (
               <TouchableOpacity key={alerta.id} style={styles.alertaCard}>
                 <ThemedText style={styles.alertaIcon}>
                   {alerta.tipo === 'critico' ? '🚨' : '⚠️'}
                 </ThemedText>
-                <ThemedView style={styles.alertaContent}>
+                <View style={styles.alertaContent}>
                   <ThemedText style={styles.alertaTitulo}>{alerta.titulo}</ThemedText>
                   <ThemedText style={styles.alertaDescricao} numberOfLines={2}>
                     {alerta.descricao}
                   </ThemedText>
-                </ThemedView>
+                </View>
               </TouchableOpacity>
             ))}
-          </ThemedView>
+          </View>
         )}
 
         {/* Informações Rápidas */}
         {dadosMonitoramento && controles && (
-          <ThemedView style={styles.infoRapida}>
+          <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>📊 Situação Atual</ThemedText>
-            <ThemedView style={styles.infoGrid}>
-              <ThemedView style={styles.infoItem}>
+            <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
                 <ThemedText style={styles.infoEmoji}>🌊</ThemedText>
                 <ThemedText style={styles.infoValor}>{dadosMonitoramento.nivelRio}m</ThemedText>
                 <ThemedText style={styles.infoLabel}>Nível do Rio</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.infoItem}>
+              </View>
+              <View style={styles.infoItem}>
                 <ThemedText style={styles.infoEmoji}>🌧️</ThemedText>
                 <ThemedText style={styles.infoValor}>{dadosMonitoramento.precipitacao}mm</ThemedText>
                 <ThemedText style={styles.infoLabel}>Chuva/Hora</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.infoItem}>
+              </View>
+              <View style={styles.infoItem}>
                 <ThemedText style={styles.infoEmoji}>🚰</ThemedText>
                 <ThemedText style={[styles.infoValor, { color: controles.bombasDrenagem ? '#4CAF50' : '#F44336' }]}>
                   {controles.bombasDrenagem ? 'Ativas' : 'Inativas'}
                 </ThemedText>
                 <ThemedText style={styles.infoLabel}>Bombas</ThemedText>
-              </ThemedView>
-            </ThemedView>
-          </ThemedView>
+              </View>
+            </View>
+          </View>
         )}
 
         {/* Dicas de Segurança */}
-        <ThemedView style={styles.dicasSection}>
+        <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>💡 Dicas de Segurança</ThemedText>
-          <ThemedView style={styles.dicaCard}>
+          <View style={styles.dicaCard}>
             <ThemedText style={styles.dicaTexto}>
               🏠 Mantenha-se informado sobre as condições climáticas
             </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.dicaCard}>
+          </View>
+          <View style={styles.dicaCard}>
             <ThemedText style={styles.dicaTexto}>
               📱 Tenha sempre um plano de evacuação preparado
             </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.dicaCard}>
+          </View>
+          <View style={styles.dicaCard}>
             <ThemedText style={styles.dicaTexto}>
               ⛈️ Evite áreas alagadas durante chuvas intensas
             </ThemedText>
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
 
-        {/* Footer Acolhedor */}
-        <ThemedView style={styles.footer}>
+        {/* Footer */}
+        <View style={styles.footer}>
           <ThemedText style={styles.footerText}>
             💙 Juntos protegemos nossa comunidade
           </ThemedText>
           <ThemedText style={styles.footerSubtext}>
             Sistema atualizado há poucos instantes
           </ThemedText>
-        </ThemedView>
-      </ThemedView>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafe',
+    backgroundColor: '#F8FAFC',
   },
   content: {
     padding: 16,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   loadingText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  welcomeHeader: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginBottom: 8,
-  },
-  welcomeSubtitle: {
     fontSize: 16,
-    color: '#666',
-    marginBottom: 12,
+    color: '#64748B',
+    textAlign: 'center',
   },
-  welcomeTime: {
+  header: {
+    padding: 20,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#1A202C',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  subtitle: {
+    textAlign: 'center',
     fontSize: 14,
-    color: '#999',
-    textTransform: 'capitalize',
+    color: '#64748B',
+    marginBottom: 4,
   },
-  statusPrincipal: {
-    marginBottom: 20,
+  section: {
+    marginVertical: 16,
+    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
   },
   statusCard: {
     backgroundColor: 'white',
@@ -349,7 +341,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  infoRapida: {
+  infoSection: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,

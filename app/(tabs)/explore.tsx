@@ -1,110 +1,311 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, Alert, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const recursos = [
+    {
+      id: '1',
+      titulo: '📱 Documentação do App',
+      descricao: 'Guia completo de uso do HidroSafe',
+      icone: '📚',
+      acao: () => Alert.alert('Documentação', 'Em breve disponível!')
+    },
+    {
+      id: '2',
+      titulo: '🌊 Sistema de Monitoramento',
+      descricao: 'Como funciona o sistema de prevenção',
+      icone: '⚙️',
+      acao: () => Alert.alert('Sistema', 'Informações técnicas em desenvolvimento')
+    },
+    {
+      id: '3',
+      titulo: '📊 Relatórios e Dados',
+      descricao: 'Acesse relatórios detalhados',
+      icone: '📈',
+      acao: () => Alert.alert('Relatórios', 'Funcionalidade em breve!')
+    },
+    {
+      id: '4',
+      titulo: '🚨 Configurar Alertas',
+      descricao: 'Personalize suas notificações',
+      icone: '🔔',
+      acao: () => Alert.alert('Configurações', 'Configurações avançadas em desenvolvimento')
+    }
+  ];
+
+  const contatos = [
+    {
+      id: '1',
+      titulo: 'Suporte Técnico',
+      info: '(11) 9999-8888',
+      icone: '🔧'
+    },
+    {
+      id: '2',
+      titulo: 'Emergências',
+      info: '199 - Defesa Civil',
+      icone: '🚨'
+    },
+    {
+      id: '3',
+      titulo: 'Email',
+      info: 'suporte@hidrosafe.com',
+      icone: '📧'
+    }
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+    <ThemedView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>Explorar</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          Recursos e informações do HidroSafe
         </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        {/* Recursos */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>🔍 Recursos Disponíveis</ThemedText>
+          {recursos.map((recurso) => (
+            <TouchableOpacity
+              key={recurso.id}
+              style={styles.card}
+              onPress={recurso.acao}
+            >
+              <View style={styles.cardContent}>
+                <ThemedText style={styles.cardIcon}>{recurso.icone}</ThemedText>
+                <View style={styles.cardText}>
+                  <ThemedText style={styles.cardTitle}>{recurso.titulo}</ThemedText>
+                  <ThemedText style={styles.cardDescription}>{recurso.descricao}</ThemedText>
+                </View>
+                <ThemedText style={styles.cardArrow}>›</ThemedText>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Contatos */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>📞 Contatos Importantes</ThemedText>
+          {contatos.map((contato) => (
+            <View key={contato.id} style={styles.contactCard}>
+              <ThemedText style={styles.contactIcon}>{contato.icone}</ThemedText>
+              <View style={styles.contactText}>
+                <ThemedText style={styles.contactTitle}>{contato.titulo}</ThemedText>
+                <ThemedText style={styles.contactInfo}>{contato.info}</ThemedText>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Informações do App */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>ℹ️ Sobre o HidroSafe</ThemedText>
+          <View style={styles.infoCard}>
+            <ThemedText style={styles.infoText}>
+              O HidroSafe é um sistema inteligente de prevenção de enchentes que monitora 
+              continuamente os níveis de água e condições meteorológicas para proteger 
+              nossa comunidade.
             </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+            <View style={styles.infoStats}>
+              <View style={styles.statItem}>
+                <ThemedText style={styles.statNumber}>24/7</ThemedText>
+                <ThemedText style={styles.statLabel}>Monitoramento</ThemedText>
+              </View>
+              <View style={styles.statItem}>
+                <ThemedText style={styles.statNumber}>v1.0</ThemedText>
+                <ThemedText style={styles.statLabel}>Versão</ThemedText>
+              </View>
+              <View style={styles.statItem}>
+                <ThemedText style={styles.statNumber}>2025</ThemedText>
+                <ThemedText style={styles.statLabel}>Ano</ThemedText>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <ThemedText style={styles.footerText}>
+            HidroSafe - Sistema de Prevenção de Enchentes
+          </ThemedText>
+          <ThemedText style={styles.footerText}>
+            Desenvolvido para a segurança da comunidade
+          </ThemedText>
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  titleContainer: {
+  content: {
+    padding: 16,
+  },
+  header: {
+    padding: 20,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#1A202C',
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  subtitle: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '400',
+  },
+  section: {
+    marginVertical: 16,
+    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A202C',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  cardContent: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+  },
+  cardIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
+  cardText: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A202C',
+    marginBottom: 4,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  cardArrow: {
+    fontSize: 20,
+    color: '#94A3B8',
+    marginLeft: 8,
+  },
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  contactIcon: {
+    fontSize: 20,
+    marginRight: 16,
+  },
+  contactText: {
+    flex: 1,
+  },
+  contactTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A202C',
+    marginBottom: 2,
+  },
+  contactInfo: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  infoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  infoStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 12,
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0984E3',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  footer: {
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 20,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 4,
   },
 });
