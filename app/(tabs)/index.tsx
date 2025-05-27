@@ -190,9 +190,9 @@ export default function HomeScreen() {
                 <ThemedText style={styles.infoLabel}>Nível do Rio</ThemedText>
               </View>
               <View style={styles.infoItem}>
-                <ThemedText style={styles.infoEmoji}>🌧️</ThemedText>
-                <ThemedText style={styles.infoValor}>{dadosMonitoramento.precipitacao}mm</ThemedText>
-                <ThemedText style={styles.infoLabel}>Chuva/Hora</ThemedText>
+                <ThemedText style={styles.infoEmoji}>🔧</ThemedText>
+                <ThemedText style={styles.infoValor}>{dadosMonitoramento.pressao}bar</ThemedText>
+                <ThemedText style={styles.infoLabel}>Pressão</ThemedText>
               </View>
               <View style={styles.infoItem}>
                 <ThemedText style={styles.infoEmoji}>🚰</ThemedText>

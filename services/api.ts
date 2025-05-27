@@ -1,7 +1,10 @@
 import { Platform } from 'react-native';
 
-// Ajusta host para emulador Android (10.0.2.2) ou localhost em iOS/dispositivo
-const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+// Configura host de API, protegendo window em ambientes sem DOM (SSR)
+const DEFAULT_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const HOST = Platform.OS === 'web' && typeof window !== 'undefined'
+  ? window.location.hostname
+  : DEFAULT_HOST;
 const API_BASE_URL = `http://${HOST}:8080/api`; // Base genérica para endpoints (alertas, controle, histórico)
 // Base específica para API de monitoramento (conforme backend exige /api/monitoramento)
 const API_MONITORAMENTO_URL = `http://${HOST}:8080/api/monitoramento`;
@@ -96,13 +99,14 @@ export interface ApiResponse<T> {
 }
 
 export interface DadosMonitoramento {
-  nivelRio: number; // em metros
-  precipitacao: number; // mm/h
+  nivelRio: number;           // em metros
+  vazao: number;              // vazão do rio
   risco: 'baixo' | 'medio' | 'alto' | 'critico';
-  temperatura: number; // para contexto
+  pressao: number;            // pressão do sistema
   localizacao: string;
   sensorId: string;
   ultimaAtualizacao: string;
+  id?: number; // identifica o registro, usado para ordenar e validar novidade
 }
 
 export interface Alerta {
@@ -162,9 +166,9 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
     
     return {
       nivelRio,
-      precipitacao: parseFloat((Math.random() * 60).toFixed(1)), // 0-60mm/h
+      vazao: parseFloat((Math.random() * 60).toFixed(1)), // 0-60mm/h
       risco,
-      temperatura: parseFloat((Math.random() * 10 + 18).toFixed(1)), // 18-28°C
+      pressao: parseFloat((Math.random() * 10 + 18).toFixed(1)), // 18-28°C
       localizacao: 'Centro - Rio Principal',
       sensorId: 'HIDRO-001',
       ultimaAtualizacao: new Date().toISOString()
@@ -174,33 +178,36 @@ export async function getDadosMonitoramento(): Promise<DadosMonitoramento> {
   try {
     const url = `${API_MONITORAMENTO_URL}/dados-atuais`;
     console.log('getDadosMonitoramento: fetching', url);
-    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    // Configura opções de fetch: headers sempre, mode somente no web
+    const fetchOptions: any = { headers: { 'Accept': 'application/json' } };
+    if (Platform.OS === 'web') {
+      fetchOptions.mode = 'cors';
+    }
+    const response = await fetch(url, fetchOptions);
     if (!response.ok) {
       const msg = response.status === 404
         ? 'Dados de monitoramento não encontrados.'
         : `Erro ${response.status} ao buscar dados de monitoramento.`;
       throw new Error(msg);
     }
-    // Recebe raw JSON e normaliza campos possivelmente com underscore
     const raw: any = await response.json();
     console.log('getDadosMonitoramento raw response:', raw);
-    // Mapeia campos do backend para formato esperado
-    const nivelRaw = raw.nivelAgua; // em cm ou unidade específica
-    // Converte para metros (assumindo entrada em cm), arredonda
-    const nivelRio = typeof nivelRaw === 'number' ? parseFloat((nivelRaw / 100).toFixed(2)) : 0;
-    const precipitacao = typeof raw.vazao === 'number' ? parseFloat(raw.vazao.toFixed(1)) : 0;
-    const temperatura = typeof raw.pressao === 'number' ? parseFloat(raw.pressao.toFixed(1)) : 0;
-    // Calcula risco baseado em nível do rio em metros
+    // Normaliza campos do backend para formato esperado
+    const nivelRaw = raw.nivelAgua;
+    const nivelRio = typeof nivelRaw === 'number' ? parseFloat((nivelRaw).toFixed(2)) : 0;
+    const vazao = typeof raw.vazao === 'number' ? parseFloat(raw.vazao.toFixed(1)) : 0;
+    const pressao = typeof raw.pressao === 'number' ? parseFloat(raw.pressao.toFixed(1)) : 0;
     const risco: 'baixo' | 'medio' | 'alto' | 'critico' =
       nivelRio < 2 ? 'baixo' : nivelRio < 2.5 ? 'medio' : nivelRio < 3 ? 'alto' : 'critico';
     const normalized: DadosMonitoramento = {
       nivelRio,
-      precipitacao,
-      temperatura,
+      vazao,
+      pressao,
       risco,
       localizacao: raw.localizacao ?? '',
       sensorId: String(raw.id ?? ''),
-      ultimaAtualizacao: raw.timestamp // ISO string
+      ultimaAtualizacao: raw.timestamp,
+      id: typeof raw.id === 'number' ? raw.id : parseInt(raw.id, 10) || undefined
     };
     console.log('getDadosMonitoramento normalized:', normalized);
     return normalized;

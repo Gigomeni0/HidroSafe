@@ -21,7 +21,9 @@ export default function HistoricoScreen() {
       
       setError(null);
       const data = await getHistoricoEventos();
-      setEventos(data);
+      // Ordena por ID (numérico) decrescente para mostrar o último evento primeiro
+      const sorted = data.slice().sort((a, b) => parseInt(b.id, 10) - parseInt(a.id, 10));
+      setEventos(sorted);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
       console.error('Erro ao carregar histórico:', err);

@@ -152,23 +152,23 @@ export default function MonitoramentoScreen() {
 
               <View style={styles.parameterItem}>
                 <View style={styles.parameterInfo}>
-                  <ThemedText style={styles.parameterLabel}>🌧️ Precipitação</ThemedText>
-                  <ThemedText style={styles.parameterValue}>{dadosMonitoramento.precipitacao} mm/h</ThemedText>
+                  <ThemedText style={styles.parameterLabel}>🚰 Vazão</ThemedText>
+                  <ThemedText style={styles.parameterValue}>{dadosMonitoramento.vazao} m³/s</ThemedText>
                 </View>
                 <View style={[
                   styles.statusIndicator,
-                  { backgroundColor: getStatusColor(dadosMonitoramento.precipitacao, 30) }
+                  { backgroundColor: getStatusColor(dadosMonitoramento.vazao, 100) }
                 ]} />
               </View>
 
               <View style={styles.parameterItem}>
                 <View style={styles.parameterInfo}>
-                  <ThemedText style={styles.parameterLabel}>🌡️ Temperatura</ThemedText>
-                  <ThemedText style={styles.parameterValue}>{dadosMonitoramento.temperatura}°C</ThemedText>
+                  <ThemedText style={styles.parameterLabel}>🔧 Pressão</ThemedText>
+                  <ThemedText style={styles.parameterValue}>{dadosMonitoramento.pressao} bar</ThemedText>
                 </View>
                 <View style={[
                   styles.statusIndicator,
-                  { backgroundColor: '#10B981' }
+                  { backgroundColor: getStatusColor(dadosMonitoramento.pressao, 5) }
                 ]} />
               </View>
             </View>
@@ -188,7 +188,7 @@ export default function MonitoramentoScreen() {
                 <View style={styles.infoItem}>
                   <ThemedText style={styles.infoLabel}>Capacidade Sistema</ThemedText>
                   <ThemedText style={styles.infoValue}>
-                    {dadosMonitoramento.precipitacao > 20 ? '78%' : '95%'}
+                    {dadosMonitoramento.vazao > 20 ? '78%' : '95%'}
                   </ThemedText>
                 </View>
                 
@@ -212,19 +212,19 @@ export default function MonitoramentoScreen() {
                 <ThemedText style={styles.trendLabel}>Nível do Rio</ThemedText>
                 <ThemedText style={[
                   styles.trendValue,
-                  { color: dadosMonitoramento.nivelRio > 1.5 ? '#EF4444' : '#10B981' }
+                  { color: dadosMonitoramento.nivelRio > 2 ? '#EF4444' : '#10B981' }
                 ]}>
-                  {dadosMonitoramento.nivelRio > 1.5 ? '+15cm ↗️' : '-3cm ↘️'}
+                  {dadosMonitoramento.nivelRio > 2 ? '+15cm ↗️' : '-3cm ↘️'}
                 </ThemedText>
               </View>
               
               <View style={styles.trendItem}>
-                <ThemedText style={styles.trendLabel}>Precipitação</ThemedText>
+                <ThemedText style={styles.trendLabel}>Vazão</ThemedText>
                 <ThemedText style={[
                   styles.trendValue,
-                  { color: dadosMonitoramento.precipitacao > 15 ? '#EF4444' : '#10B981' }
+                  { color: dadosMonitoramento.vazao > 100 ? '#EF4444' : '#10B981' }
                 ]}>
-                  {dadosMonitoramento.precipitacao > 15 ? '+12mm ↗️' : '-2mm ↘️'}
+                  {dadosMonitoramento.vazao > 100 ? '+12m³/s ↗️' : '-2m³/s ↘️'}
                 </ThemedText>
               </View>
             </View>
